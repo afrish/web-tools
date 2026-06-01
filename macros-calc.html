@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Macros Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px 40px 0 40px;
+      background-color: #f7f7f7;
+    }
+    .container {
+      max-width: 400px;
+      margin: auto;
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 10px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    .result {
+      margin-top: 20px;
+      background: #e6f7ff;
+      padding: 15px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <label for="protein">Protein (g):</label>
+    <input type="number" id="protein" step="any"/>
+
+    <label for="carbs">Carbs (g):</label>
+    <input type="number" id="carbs" step="any"/>
+
+    <label for="lipids">Lipids (g):</label>
+    <input type="number" id="lipids" step="any"/>
+
+    <label for="calories">Total Calories (kcal):</label>
+    <input type="number" id="calories" step="any"/>
+
+    <label for="rawWeight">Total Raw Weight (g):</label>
+    <input type="number" id="rawWeight" step="any"/>
+
+    <label for="finalWeight">Final Cooked Weight (g):</label>
+    <input type="number" id="finalWeight" step="any"/>
+
+    <button onclick="calculate()">Calculate per 100g</button>
+
+    <div class="result" id="result" style="display:none;"></div>
+  </div>
+
+  <script>
+    function calculate() {
+      const P = parseFloat(document.getElementById("protein").value);
+      const C = parseFloat(document.getElementById("carbs").value);
+      const L = parseFloat(document.getElementById("lipids").value);
+      const K = parseFloat(document.getElementById("calories").value);
+      const X1 = parseFloat(document.getElementById("rawWeight").value);
+      const X2 = parseFloat(document.getElementById("finalWeight").value);
+
+      if ([P, C, L, K, X1, X2].some(v => isNaN(v) || v <= 0)) {
+        alert("Please enter valid positive values.");
+        return;
+      }
+
+      const p100 = (P / X2) * 100;
+      const c100 = (C / X2) * 100;
+      const l100 = (L / X2) * 100;
+      const kcalPerGram = K / X1;
+      const kcal100 = kcalPerGram * 100 * (X1 / X2);
+
+      const resultDiv = document.getElementById("result");
+      resultDiv.style.display = "block";
+      resultDiv.innerHTML = `
+        <strong>Per 100g of cooked dish:</strong><br/>
+        Protein: ${p100.toFixed(2)} g<br/>
+        Carbs: ${c100.toFixed(2)} g<br/>
+        Lipids: ${l100.toFixed(2)} g<br/>
+        Calories: ${kcal100.toFixed(2)} kcal
+      `;
+    }
+  </script>
+</body>
+</html>

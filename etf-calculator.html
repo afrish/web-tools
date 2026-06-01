@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETF Rebalancing Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 20px;
+        }
+        /* Responsive design */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 20px;
+            }
+            .container {
+                padding: 15px;
+            }
+            input, button {
+                font-size: 14px;
+                padding: 8px;
+            }
+            .result {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>ETF Rebalancing Calculator</h1>
+
+    <div class="container">
+        <form id="calculator-form">
+            <label for="iwdaShares">IWDA Shares:</label>
+            <input type="number" id="iwdaShares" min="0" step="1" value="0" required>
+
+            <label for="emimShares">EMIM Shares:</label>
+            <input type="number" id="emimShares" min="0" step="1" value="0" required>
+
+            <label for="iwdaPrice">IWDA Price (per share):</label>
+            <input type="number" id="iwdaPrice" min="0" step="0.01" value="0" required>
+
+            <label for="emimPrice">EMIM Price (per share):</label>
+            <input type="number" id="emimPrice" min="0" step="0.01" value="0" required>
+
+            <label for="monthlyInvestment">Monthly Investment:</label>
+            <input type="number" id="monthlyInvestment" min="0" step="0.01" value="0" required>
+
+            <button type="button" onclick="calculate()">Calculate</button>
+        </form>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        function calculate() {
+            // Get input values
+            let iwdaShares = parseInt(document.getElementById('iwdaShares').value);
+            let emimShares = parseInt(document.getElementById('emimShares').value);
+            let iwdaPrice = parseFloat(document.getElementById('iwdaPrice').value);
+            let emimPrice = parseFloat(document.getElementById('emimPrice').value);
+            let monthlyInvestment = parseFloat(document.getElementById('monthlyInvestment').value);
+
+            // Ensure inputs are valid numbers
+            if (isNaN(iwdaShares) || isNaN(emimShares) || isNaN(iwdaPrice) || isNaN(emimPrice) || isNaN(monthlyInvestment)) {
+                document.getElementById('result').innerHTML = 'Please enter valid numbers for all fields.';
+                return;
+            }
+
+            // Target allocation percentages
+            let targetIWDA = 0.88;
+            let targetEMIM = 0.12;
+
+            // Current portfolio values
+            let currentIWDAValue = iwdaShares * iwdaPrice;
+            let currentEMIMValue = emimShares * emimPrice;
+            let totalPortfolioValue = currentIWDAValue + currentEMIMValue;
+
+            // Check if initial portfolio is zero, allocate entire monthly investment based on the target ratio
+            if (totalPortfolioValue === 0) {
+                // Calculate investment allocation
+                let iwdaInvestment = targetIWDA * monthlyInvestment;
+                let emimInvestment = targetEMIM * monthlyInvestment;
+
+                // Calculate shares to buy, rounded down
+                let iwdaSharesToBuy = Math.floor(iwdaInvestment / iwdaPrice);
+                let emimSharesToBuy = Math.floor(emimInvestment / emimPrice);
+
+                // Display results
+                document.getElementById('result').innerHTML = `
+                    You should buy <strong>${iwdaSharesToBuy} IWDA</strong> shares and <strong>${emimSharesToBuy} EMIM</strong> shares to match the 88%/12% allocation.
+                `;
+                return;
+            }
+
+            // Target portfolio values
+            let targetIWDAValue = targetIWDA * (totalPortfolioValue + monthlyInvestment);
+            let targetEMIMValue = targetEMIM * (totalPortfolioValue + monthlyInvestment);
+
+            // Amount needed to reach target
+            let neededForIWDA = targetIWDAValue - currentIWDAValue;
+            let neededForEMIM = targetEMIMValue - currentEMIMValue;
+
+            // Calculate proportion of the new investment for each ETF
+            let iwdaInvestment = 0;
+            let emimInvestment = 0;
+
+            if (neededForIWDA > 0 || neededForEMIM > 0) {
+                iwdaInvestment = (neededForIWDA / (neededForIWDA + neededForEMIM)) * monthlyInvestment;
+                emimInvestment = (neededForEMIM / (neededForIWDA + neededForEMIM)) * monthlyInvestment;
+            }
+
+            // Calculate the number of shares to buy, rounded down to whole shares
+            let iwdaSharesToBuy = Math.floor(iwdaInvestment / iwdaPrice);
+            let emimSharesToBuy = Math.floor(emimInvestment / emimPrice);
+
+            // Calculate the remaining money after rounding down the shares
+            let remainingIWDAInvestment = iwdaInvestment - (iwdaSharesToBuy * iwdaPrice);
+            let remainingEMIMInvestment = emimInvestment - (emimSharesToBuy * emimPrice);
+            let remainingInvestment = remainingIWDAInvestment + remainingEMIMInvestment;
+
+            // Use any remaining money to buy additional shares, prioritizing whichever ETF is most underweight
+            if (remainingInvestment >= iwdaPrice && (currentIWDAValue / totalPortfolioValue < targetIWDA)) {
+                iwdaSharesToBuy += 1;
+                remainingInvestment -= iwdaPrice;
+            }
+
+            if (remainingInvestment >= emimPrice && (currentEMIMValue / totalPortfolioValue < targetEMIM)) {
+                emimSharesToBuy += 1;
+            }
+
+            // Display results
+            document.getElementById('result').innerHTML = `
+                You should buy <strong>${iwdaSharesToBuy} IWDA</strong> shares and <strong>${emimSharesToBuy} EMIM</strong> shares to get as close to your target allocation as possible.
+            `;
+        }
+    </script>
+
+</body>
+</html>
